@@ -1,0 +1,25 @@
+[0.681s] Invoking command in '/home/brady/ros2_iron/src/node_testing_py/build/node_testing_py': PYTHONPATH=/home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/lib/python3.10/site-packages: /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/build --no-deps symlink_data
+[0.951s] running develop
+[1.088s] running egg_info
+[1.088s] creating node_testing_py.egg-info
+[1.088s] writing node_testing_py.egg-info/PKG-INFO
+[1.088s] writing dependency_links to node_testing_py.egg-info/dependency_links.txt
+[1.089s] writing entry points to node_testing_py.egg-info/entry_points.txt
+[1.089s] writing requirements to node_testing_py.egg-info/requires.txt
+[1.089s] writing top-level names to node_testing_py.egg-info/top_level.txt
+[1.089s] writing manifest file 'node_testing_py.egg-info/SOURCES.txt'
+[1.091s] reading manifest file 'node_testing_py.egg-info/SOURCES.txt'
+[1.092s] writing manifest file 'node_testing_py.egg-info/SOURCES.txt'
+[1.093s] running build_ext
+[1.094s] Creating /home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/lib/python3.10/site-packages/node-testing-py.egg-link (link to .)
+[1.094s] Installing listener script to /home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/lib/node_testing_py
+[1.095s] Installing talker script to /home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/lib/node_testing_py
+[1.095s] 
+[1.096s] Installed /home/brady/ros2_iron/src/node_testing_py/build/node_testing_py
+[1.096s] running symlink_data
+[1.096s] creating /home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/share/ament_index
+[1.096s] creating /home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/share/ament_index/resource_index
+[1.096s] creating /home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/share/ament_index/resource_index/packages
+[1.096s] symbolically linking /home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/resource/node_testing_py -> /home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/share/ament_index/resource_index/packages
+[1.097s] symbolically linking /home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/package.xml -> /home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/share/node_testing_py
+[1.130s] Invoked command in '/home/brady/ros2_iron/src/node_testing_py/build/node_testing_py' returned '0': PYTHONPATH=/home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/lib/python3.10/site-packages: /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/build --no-deps symlink_data

@@ -1,0 +1,22 @@
+[1.736s] Invoking command in '/home/brady/ros2_iron/src/node_testing_py': PYTHONPATH=/home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base build/node_testing_py build --build-base /home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/build install --record /home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/install.log --single-version-externally-managed install_data
+[2.348s] running egg_info
+[2.349s] writing build/node_testing_py/node_testing_py.egg-info/PKG-INFO
+[2.350s] writing dependency_links to build/node_testing_py/node_testing_py.egg-info/dependency_links.txt
+[2.350s] writing entry points to build/node_testing_py/node_testing_py.egg-info/entry_points.txt
+[2.350s] writing requirements to build/node_testing_py/node_testing_py.egg-info/requires.txt
+[2.350s] writing top-level names to build/node_testing_py/node_testing_py.egg-info/top_level.txt
+[2.351s] reading manifest file 'build/node_testing_py/node_testing_py.egg-info/SOURCES.txt'
+[2.353s] writing manifest file 'build/node_testing_py/node_testing_py.egg-info/SOURCES.txt'
+[2.353s] running build
+[2.353s] running build_py
+[2.353s] running install
+[2.354s] running install_lib
+[2.360s] running install_data
+[2.360s] running install_egg_info
+[2.364s] removing '/home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/lib/python3.10/site-packages/node_testing_py-0.0.0-py3.10.egg-info' (and everything under it)
+[2.364s] Copying build/node_testing_py/node_testing_py.egg-info to /home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/lib/python3.10/site-packages/node_testing_py-0.0.0-py3.10.egg-info
+[2.366s] running install_scripts
+[2.415s] Installing listener script to /home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/lib/node_testing_py
+[2.415s] Installing talker script to /home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/lib/node_testing_py
+[2.416s] writing list of installed files to '/home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/install.log'
+[2.451s] Invoked command in '/home/brady/ros2_iron/src/node_testing_py' returned '0': PYTHONPATH=/home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base build/node_testing_py build --build-base /home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/build install --record /home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/install.log --single-version-externally-managed install_data

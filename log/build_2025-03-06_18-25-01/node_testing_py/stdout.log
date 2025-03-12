@@ -1,0 +1,23 @@
+running develop
+running egg_info
+creating node_testing_py.egg-info
+writing node_testing_py.egg-info/PKG-INFO
+writing dependency_links to node_testing_py.egg-info/dependency_links.txt
+writing entry points to node_testing_py.egg-info/entry_points.txt
+writing requirements to node_testing_py.egg-info/requires.txt
+writing top-level names to node_testing_py.egg-info/top_level.txt
+writing manifest file 'node_testing_py.egg-info/SOURCES.txt'
+reading manifest file 'node_testing_py.egg-info/SOURCES.txt'
+writing manifest file 'node_testing_py.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/lib/python3.10/site-packages/node-testing-py.egg-link (link to .)
+Installing listener script to /home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/lib/node_testing_py
+Installing talker script to /home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/lib/node_testing_py
+
+Installed /home/brady/ros2_iron/src/node_testing_py/build/node_testing_py
+running symlink_data
+creating /home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/share/ament_index
+creating /home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/share/ament_index/resource_index
+creating /home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/share/ament_index/resource_index/packages
+symbolically linking /home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/resource/node_testing_py -> /home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/share/ament_index/resource_index/packages
+symbolically linking /home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/package.xml -> /home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/share/node_testing_py

@@ -1,0 +1,43 @@
+[1.648s] Invoking command in '/home/brady/ros2_iron/src/node_testing_py/build/node_testing_py': PYTHONPATH=/home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --uninstall --editable --build-directory /home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/build
+[2.378s] running develop
+[2.717s] Removing /home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/lib/python3.10/site-packages/node-testing-py.egg-link (link to .)
+[2.755s] Invoked command in '/home/brady/ros2_iron/src/node_testing_py/build/node_testing_py' returned '0': PYTHONPATH=/home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --uninstall --editable --build-directory /home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/build
+[2.758s] Invoking command in '/home/brady/ros2_iron/src/node_testing_py': PYTHONPATH=/home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base build/node_testing_py build --build-base /home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/build install --record /home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/install.log --single-version-externally-managed install_data --force
+[3.411s] running egg_info
+[3.412s] writing build/node_testing_py/node_testing_py.egg-info/PKG-INFO
+[3.413s] writing dependency_links to build/node_testing_py/node_testing_py.egg-info/dependency_links.txt
+[3.413s] writing entry points to build/node_testing_py/node_testing_py.egg-info/entry_points.txt
+[3.413s] writing requirements to build/node_testing_py/node_testing_py.egg-info/requires.txt
+[3.413s] writing top-level names to build/node_testing_py/node_testing_py.egg-info/top_level.txt
+[3.415s] reading manifest file 'build/node_testing_py/node_testing_py.egg-info/SOURCES.txt'
+[3.416s] writing manifest file 'build/node_testing_py/node_testing_py.egg-info/SOURCES.txt'
+[3.416s] running build
+[3.416s] running build_py
+[3.417s] creating /home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/build
+[3.417s] creating /home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/build/lib
+[3.417s] creating /home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/build/lib/node_testing_py
+[3.417s] copying node_testing_py/__init__.py -> /home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/build/lib/node_testing_py
+[3.418s] copying node_testing_py/publisher.py -> /home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/build/lib/node_testing_py
+[3.418s] copying node_testing_py/points_to_lines.py -> /home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/build/lib/node_testing_py
+[3.418s] copying node_testing_py/subscriber.py -> /home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/build/lib/node_testing_py
+[3.419s] running install
+[3.419s] running install_lib
+[3.421s] creating /home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/lib/python3.10/site-packages/node_testing_py
+[3.421s] copying /home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/build/lib/node_testing_py/__init__.py -> /home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/lib/python3.10/site-packages/node_testing_py
+[3.422s] copying /home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/build/lib/node_testing_py/publisher.py -> /home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/lib/python3.10/site-packages/node_testing_py
+[3.422s] copying /home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/build/lib/node_testing_py/points_to_lines.py -> /home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/lib/python3.10/site-packages/node_testing_py
+[3.422s] copying /home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/build/lib/node_testing_py/subscriber.py -> /home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/lib/python3.10/site-packages/node_testing_py
+[3.426s] byte-compiling /home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/lib/python3.10/site-packages/node_testing_py/__init__.py to __init__.cpython-310.pyc
+[3.426s] byte-compiling /home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/lib/python3.10/site-packages/node_testing_py/publisher.py to publisher.cpython-310.pyc
+[3.427s] byte-compiling /home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/lib/python3.10/site-packages/node_testing_py/points_to_lines.py to points_to_lines.cpython-310.pyc
+[3.427s] byte-compiling /home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/lib/python3.10/site-packages/node_testing_py/subscriber.py to subscriber.cpython-310.pyc
+[3.428s] running install_data
+[3.428s] copying resource/node_testing_py -> /home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/share/ament_index/resource_index/packages
+[3.428s] copying package.xml -> /home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/share/node_testing_py
+[3.428s] running install_egg_info
+[3.434s] Copying build/node_testing_py/node_testing_py.egg-info to /home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/lib/python3.10/site-packages/node_testing_py-0.0.0-py3.10.egg-info
+[3.435s] running install_scripts
+[3.487s] Installing listener script to /home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/lib/node_testing_py
+[3.488s] Installing talker script to /home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/lib/node_testing_py
+[3.488s] writing list of installed files to '/home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/install.log'
+[3.521s] Invoked command in '/home/brady/ros2_iron/src/node_testing_py' returned '0': PYTHONPATH=/home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/brady/ros2_iron/src/node_testing_py/install/node_testing_py/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base build/node_testing_py build --build-base /home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/build install --record /home/brady/ros2_iron/src/node_testing_py/build/node_testing_py/install.log --single-version-externally-managed install_data --force

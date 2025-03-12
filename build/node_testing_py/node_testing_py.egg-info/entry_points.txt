@@ -1,0 +1,4 @@
+[console_scripts]
+listener = node_testing_py.subscriber:main
+talker = node_testing_py.publisher:main
+
