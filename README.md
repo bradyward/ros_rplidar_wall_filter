@@ -1,3 +1,7 @@
-# vip_wall_filter
-Just setup this repo. Need to remove all the extra files and remove the swap file?
-		Currently takes a lidar LaserScan, rotates it about an angle, and trims all points outside of bounds. Need to test using an actual quaternion, getting the robots pose and shifting all points accordingly, and using a proper bounding box
+# RPLidar Wall Filter
+Project for the ARS vip. This node listens to LaserScan messages from /scan, transforms into 2d points about a robot's pose, trims all points that lie outside of a box, and publishes the new ranges back as a LaserScan.		
+
+Still need to:		
+* Test with the robot's actual pose (hardcoded pose and rotation for now)		
+* Get the bounding box from a topic (hardcoded for now)
+* Swap the message it published to a LaserScan, currently PolygonStamped for visualiziation

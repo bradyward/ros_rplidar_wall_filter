@@ -21,6 +21,10 @@ class MinimalSubscriber(Node):
         self.subscription = self.create_subscription(LaserScan, '/scan', self.listener_callback, 10)
         self.subscription
 
+    """
+    Triggers when a LaserScan is recieved on /scan
+    Trims all ranges outside a bounding box
+    """
     def listener_callback(self, message):
         self.get_logger().info("Entire message: {0}\n\n\n\n".format(message))
 
@@ -29,16 +33,18 @@ class MinimalSubscriber(Node):
         points_clean = np.array(points, dtype=np.float32)
         points_clean = np.nan_to_num(points_clean, nan=0.0, posinf=0.0, neginf=0.0)
 
-
         # Apply rotation
         ###theta = self.quat_to_theta([0.9659258, 0, 0.258819, 0]) #30 degree rotation
         theta = self.quat_to_theta([0, 0, 0, 0]) #0 degree rotation
         transformed = self.apply_rotation(points_clean, theta)
 
+        # Shift points according to robot's pose
+        r_pose = [1, 1]
+        transformed = transformed + r_pose
+
         # Cull any points out of bounds
         min_x, min_y = 0.3, 0.3
         max_x, max_y = 2,2
-
         mask = (min_x < transformed[:,0]) & (transformed[:,0] < max_x) & (min_y < transformed[:,1]) & (transformed[:,1] < max_y)
         culled_points = np.where(mask[:, np.newaxis], transformed, np.array([0,0]))
 
@@ -73,7 +79,7 @@ class MinimalSubscriber(Node):
         return np.arcsin(t2)
 
     """
-    Creates and multiplies a transformation matrix over all points
+    Multiplies a transformation matrix over all points
     """
     def apply_rotation(self, points, theta):
         tf_matrix = np.array([ [np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)] ])
