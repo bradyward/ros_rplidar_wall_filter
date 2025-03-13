@@ -12,21 +12,40 @@ from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 
 from example_interfaces.msg import String
-from geometry_msgs.msg import PolygonStamped, Point32
+from geometry_msgs.msg import PolygonStamped, Point32, Quaternion
 
 class MinimalSubscriber(Node):
     def __init__(self):
         super().__init__('minimal_subscriber')
-        self.publisher = self.create_publisher(PolygonStamped, '/postRotation', 10)
+        # Setup normal listener / publisher
+        self.publisherTransformed = self.create_publisher(PolygonStamped, '/postRotation', 10)
+        self.publisherTrimmed = self.create_publisher(LaserScan, '/postRotationLaser', 10)
         self.subscription = self.create_subscription(LaserScan, '/scan', self.listener_callback, 10)
         self.subscription
+        # Setup transform listener
+        #self.tf_buffer = tf2_ros.Buffer()
+        #self.tf_listener = tf2_ros.TransformListener(tf_buffer)
+
+        # Parameters
+        self.min_x = .5
+        self.min_y = .5
+        self.max_x = 2
+        self.max_y = 2
+        # Should get these from tf listener during callback. Parameters just for testing
+        self.r_pose = [0, 0] 
+        self.quat = [0,0,0,0] # 0 degree rotation
+        #self.quat = [0.9659258, 0, 0.258819, 0] # 30 degree rotation
 
     """
     Triggers when a LaserScan is recieved on /scan
     Trims all ranges outside a bounding box
     """
     def listener_callback(self, message):
-        self.get_logger().info("Entire message: {0}\n\n\n\n".format(message))
+        #try: 
+        #    trans = tfBuffer.lookup_transform(turtle_name, 'turtle1', rclpy.time.Time())#transform(to_frame_rel, from_frame_rel, time())
+        #except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
+
+        self.get_logger().info("Entire message: {0}\n".format(message))
 
         # Ensure all points are float32 (required by Polygon) and clean out NaN/infinity values
         points = self.polar_to_cartesian(message.angle_min, message.ranges, message.angle_increment)
@@ -34,29 +53,34 @@ class MinimalSubscriber(Node):
         points_clean = np.nan_to_num(points_clean, nan=0.0, posinf=0.0, neginf=0.0)
 
         # Apply rotation
-        ###theta = self.quat_to_theta([0.9659258, 0, 0.258819, 0]) #30 degree rotation
-        theta = self.quat_to_theta([0, 0, 0, 0]) #0 degree rotation
+        theta = self.quat_to_theta(self.quat)
         transformed = self.apply_rotation(points_clean, theta)
 
         # Shift points according to robot's pose
-        r_pose = [1, 1]
-        transformed = transformed + r_pose
+        transformed = transformed + self.r_pose
 
         # Cull any points out of bounds
-        min_x, min_y = 0.3, 0.3
-        max_x, max_y = 2,2
-        mask = (min_x < transformed[:,0]) & (transformed[:,0] < max_x) & (min_y < transformed[:,1]) & (transformed[:,1] < max_y)
+        mask = (self.min_x < transformed[:,0]) & (transformed[:,0] < self.max_x) & (self.min_y < transformed[:,1]) & (transformed[:,1] < self.max_y)
+        self.get_logger().info("Mask: {0}\n\n\n".format(mask))
+
         culled_points = np.where(mask[:, np.newaxis], transformed, np.array([0,0]))
 
-        # Add a 0 for the z coordinate (required to publish polygons)
-        points_3d = np.hstack([culled_points, np.zeros((transformed.shape[0], 1), dtype=np.float32)]) 
-
         # Construct the stamped polygon
+        points_3d = np.hstack([culled_points, np.zeros((transformed.shape[0], 1), dtype=np.float32)]) # Tack 0 for z coord
         geo_message = PolygonStamped()
         geo_message.header.frame_id = "laser"
         geo_message.polygon.points = [Point32(x=float(p[0]), y=float(p[1]), z=float(p[2])) for p in points_3d]
 
-        self.publisher.publish(geo_message)
+        # OR - goal publish #
+        # Modify the original laser scan according to the map
+        original_ranges = message.ranges
+        culled_ranges = np.where(mask, original_ranges, 0).astype(np.float32)
+
+        message.ranges = culled_ranges
+
+        # Publish
+        self.publisherTransformed.publish(geo_message)
+        self.publisherTrimmed.publish(message)
 
     """
     Takes in a lidar's LaserScan message and converts it to cartesian coordinates
