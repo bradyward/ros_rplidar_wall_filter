@@ -7,9 +7,10 @@ from std_msgs.msg import String
 import numpy as np
 import math
 
-from tf2_ros import TransformException
-from tf2_ros.buffer import Buffer
-from tf2_ros.transform_listener import TransformListener
+import tf2_ros as tf2
+#from tf2_ros import TransformException
+#from tf2_ros.buffer import Buffer
+#from tf2_ros.transform_listener import TransformListener
 
 from example_interfaces.msg import String
 from geometry_msgs.msg import PolygonStamped, Point32, Quaternion
@@ -23,46 +24,62 @@ class MinimalSubscriber(Node):
         self.subscription = self.create_subscription(LaserScan, '/scan', self.listener_callback, 10)
         self.subscription
         # Setup transform listener
-        #self.tf_buffer = tf2_ros.Buffer()
-        #self.tf_listener = tf2_ros.TransformListener(tf_buffer)
+        self.tf_buffer = tf2.Buffer()
+        self.tf_listener = tf2.TransformListener(self.tf_buffer, self)
 
-        # Parameters
-        self.min_x = .5
-        self.min_y = .5
-        self.max_x = 2
-        self.max_y = 2
+        ### Parameters ###
+        #self.target_frame = self.declare_parameter('target_frame', 'default_value').get_parameter_value().string_value
+
         # Should get these from tf listener during callback. Parameters just for testing
-        self.r_pose = [0, 0] 
-        self.quat = [0,0,0,0] # 0 degree rotation
+        #self.r_pose = [-.5,-.5] 
+        #self.quat = [0,0,0,0] # 0 degree rotation
         #self.quat = [0.9659258, 0, 0.258819, 0] # 30 degree rotation
+
+        self.default_bad = 0.0
+        self.min_x = -2# + self.r_pose[0]
+        self.min_y = -2# + self.r_pose[1]
+        self.max_x = 0 #+ self.r_pose[0]
+        self.max_y = 0 #+ self.r_pose[1]
+
+    ### For experimenting with listeners
+    #    self.timer = self.create_timer(1.0, self.timer_callback)
+    #def timer_callback(self):
+    #    try:
+    #        transform = self.tf_buffer.lookup_transform("target_frame", "source_frame", rclpy.time.Time()).transform
+    #        self.get_logger().info(f'Transform quat: {transform}')
+    #    except Exception as ex:
+    #        self.get_logger().info(f'Could not transform : {ex}')
+    #        return
+
 
     """
     Triggers when a LaserScan is recieved on /scan
     Trims all ranges outside a bounding box
     """
     def listener_callback(self, message):
-        #try: 
-        #    trans = tfBuffer.lookup_transform(turtle_name, 'turtle1', rclpy.time.Time())#transform(to_frame_rel, from_frame_rel, time())
-        #except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
+        #self.get_logger().info("Entire message: {0}\n".format(message))
 
-        self.get_logger().info("Entire message: {0}\n".format(message))
+        # Get transform message
+        try:
+            r_pose = self.tf_buffer.lookup_transform("target_frame", "source_frame", rclpy.time.Time()).transform
+            #self.get_logger().info(f'Transform quat: {self.quat}')
+        except Exception as ex:
+            self.get_logger().info(f'Could not transform : {ex}')
+            return
 
         # Ensure all points are float32 (required by Polygon) and clean out NaN/infinity values
         points = self.polar_to_cartesian(message.angle_min, message.ranges, message.angle_increment)
-        points_clean = np.array(points, dtype=np.float32)
-        points_clean = np.nan_to_num(points_clean, nan=0.0, posinf=0.0, neginf=0.0)
+        points = np.array(points, dtype=np.float32)
+        points_clean = np.nan_to_num(points, nan=self.default_bad, posinf=self.default_bad, neginf=self.default_bad)
 
         # Apply rotation
-        theta = self.quat_to_theta(self.quat)
-        transformed = self.apply_rotation(points_clean, theta)
+        transformed = self.apply_rotation(points_clean, self.quat_to_theta(r_pose.rotation))
 
         # Shift points according to robot's pose
-        transformed = transformed + self.r_pose
+        transformed = transformed + [r_pose.translation.x, r_pose.translation.y]
 
         # Cull any points out of bounds
         mask = (self.min_x < transformed[:,0]) & (transformed[:,0] < self.max_x) & (self.min_y < transformed[:,1]) & (transformed[:,1] < self.max_y)
-        self.get_logger().info("Mask: {0}\n\n\n".format(mask))
-
         culled_points = np.where(mask[:, np.newaxis], transformed, np.array([0,0]))
 
         # Construct the stamped polygon
@@ -71,10 +88,9 @@ class MinimalSubscriber(Node):
         geo_message.header.frame_id = "laser"
         geo_message.polygon.points = [Point32(x=float(p[0]), y=float(p[1]), z=float(p[2])) for p in points_3d]
 
-        # OR - goal publish #
         # Modify the original laser scan according to the map
         original_ranges = message.ranges
-        culled_ranges = np.where(mask, original_ranges, 0).astype(np.float32)
+        culled_ranges = np.where(mask, original_ranges, self.default_bad).astype(np.float32)
 
         message.ranges = culled_ranges
 
