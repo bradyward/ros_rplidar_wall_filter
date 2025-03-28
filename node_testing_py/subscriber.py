@@ -23,6 +23,10 @@ class MinimalSubscriber(Node):
         self.publisherTrimmed = self.create_publisher(LaserScan, '/postRotationLaser', 10)
         self.subscription = self.create_subscription(LaserScan, '/scan', self.listener_callback, 10)
         self.subscription
+
+        # Get bounding box
+        #boxSubscriber = self.create_subscription(Point, '/arena', self.listener_callback, 10)
+        
         # Setup transform listener
         self.tf_buffer = tf2.Buffer()
         self.tf_listener = tf2.TransformListener(self.tf_buffer, self)
@@ -36,10 +40,10 @@ class MinimalSubscriber(Node):
         #self.quat = [0.9659258, 0, 0.258819, 0] # 30 degree rotation
 
         self.default_bad = 0.0
-        self.min_x = -2# + self.r_pose[0]
-        self.min_y = -2# + self.r_pose[1]
-        self.max_x = 0 #+ self.r_pose[0]
-        self.max_y = 0 #+ self.r_pose[1]
+        self.min_x = -1# + self.r_pose[0]
+        self.min_y = -1# + self.r_pose[1]
+        self.max_x = 1 #+ self.r_pose[0]
+        self.max_y = 1 #+ self.r_pose[1]
 
     ### For experimenting with listeners
     #    self.timer = self.create_timer(1.0, self.timer_callback)
@@ -79,7 +83,8 @@ class MinimalSubscriber(Node):
         transformed = transformed + [r_pose.translation.x, r_pose.translation.y]
 
         # Cull any points out of bounds
-        mask = (self.min_x < transformed[:,0]) & (transformed[:,0] < self.max_x) & (self.min_y < transformed[:,1]) & (transformed[:,1] < self.max_y)
+        # TODO change self.min_x+r_pose.translation.x to adjust self.min_x at the start of getting the bound box so we don't have to add every time
+        mask = ((self.min_x+r_pose.translation.x) < transformed[:,0]) & (transformed[:,0] < (self.max_x+r_pose.translation.x)) & ((self.min_y+r_pose.translation.y) < transformed[:,1]) & (transformed[:,1] < (self.max_y+r_pose.translation.y))
         culled_points = np.where(mask[:, np.newaxis], transformed, np.array([0,0]))
 
         # Construct the stamped polygon
@@ -112,8 +117,8 @@ class MinimalSubscriber(Node):
     """
     def quat_to_theta(self, quat):
         # Assume quaternions are in form here: https://docs.ros.org/en/jade/api/geometry_msgs/html/msg/Quaternion.html
-        t2 = 2.0 * (quat[0] * quat[2] - quat[3] * quat[1])
-        #t2 = 2.0 * (quat.w * quat.y - quat.z * quat.x)
+        #t2 = 2.0 * (quat[0] * quat[2] - quat[3] * quat[1])
+        t2 = 2.0 * (quat.w * quat.y - quat.z * quat.x)
         t2 = np.where(t2>+1.0,+1.0,t2)
         t2 = np.where(t2<-1.0, -1.0, t2)
         return np.arcsin(t2)
