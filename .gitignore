@@ -1,1 +1,6 @@
 *.swp
+build/
+install/
+log/
+resource/
+test/

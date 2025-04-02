@@ -1,11 +1,12 @@
 import rclpy
 from rclpy.node import Node
 
-from sensor_msgs.msg import LaserScan
+from sensor_msgs.msg import LaserScan, PointCloud2
 from std_msgs.msg import String
 
 import numpy as np
 import math
+import copy
 
 import tf2_ros as tf2
 #from tf2_ros import TransformException
@@ -15,10 +16,12 @@ import tf2_ros as tf2
 from example_interfaces.msg import String
 from geometry_msgs.msg import PolygonStamped, Point32, Quaternion
 
+
+
 class MinimalSubscriber(Node):
     def __init__(self):
         super().__init__('minimal_subscriber')
-        # Setup normal listener / publisher
+        # Setup 2D lidar listener / publisher
         self.publisherTransformed = self.create_publisher(PolygonStamped, '/postRotation', 10)
         self.publisherTrimmed = self.create_publisher(LaserScan, '/postRotationLaser', 10)
         self.subscription = self.create_subscription(LaserScan, '/scan', self.listener_callback, 10)
@@ -26,6 +29,10 @@ class MinimalSubscriber(Node):
 
         # Get bounding box
         #boxSubscriber = self.create_subscription(Point, '/arena', self.listener_callback, 10)
+
+        # Setup 3D lidar listener / publisher
+        self.pointCloudSubscriber = self.create_subscription(PointCloud2, '/unilidar/cloud', self.point_cloud_callback, 10)
+        self.pointCloudPublisher = self.create_publisher(PointCloud2, '/testPointCloud', 100)
         
         # Setup transform listener
         self.tf_buffer = tf2.Buffer()
@@ -45,15 +52,48 @@ class MinimalSubscriber(Node):
         self.max_x = 1 #+ self.r_pose[0]
         self.max_y = 1 #+ self.r_pose[1]
 
-    ### For experimenting with listeners
-    #    self.timer = self.create_timer(1.0, self.timer_callback)
-    #def timer_callback(self):
-    #    try:
-    #        transform = self.tf_buffer.lookup_transform("target_frame", "source_frame", rclpy.time.Time()).transform
-    #        self.get_logger().info(f'Transform quat: {transform}')
-    #    except Exception as ex:
-    #        self.get_logger().info(f'Could not transform : {ex}')
-    #        return
+
+    ### For experimenting with point cloud
+    def point_cloud_callback(self, message):
+        # Get message data into a 2D numpy array, each row representing a point
+        original_array = np.array(message.data)
+        np_data = original_array.reshape(-1,32)
+
+        # Remove half the points
+        #new_data = np.array(np_data[::2].flatten()) #takes out half of the points
+
+        """
+        Convert the points to floats to make working with them possible
+        Each x, and y must be converted from int int int int -> float
+        First check if they are represented in little/big endian form
+        Perform the conversion, likely using the struct package: https://stackoverflow.com/questions/57119566/converting-4-uint-8-values-to-float-in-python
+        Ignore all other fields: y, intensity, ring, and time
+        Perform bounds check on the x/y points in 2D. Write them back in their original form alongside the other fields
+        Repeat for all other points
+
+        Consider performance with this, whether its faster to:
+            Convert all points, check all points, use mask to rewrite all valid points
+            Check bounds and write as points are converted
+        Second method should be significantly faster and easier as all original data is available and doesn't need to be converted back
+        """
+        if (message.isbigendian):
+            1
+        else:
+            2
+
+        # Update the message to match the new point array
+        message.width = int(len(new_data) / 32)
+        message.row_step = int(len(new_data))
+        message.data = new_data
+
+        # Publish
+        self.pointCloudPublisher.publish(message)
+    ###
+
+    def print_no_data(self, m):
+        tm = copy.deepcopy(m)
+        tm.data = []
+        self.get_logger().info("New message: {0}\n{1}\n\n".format(tm, len(m.data)))
 
 
     """

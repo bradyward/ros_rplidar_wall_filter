@@ -1,6 +1,0 @@
-[0.000000] (-) TimerEvent: {}
-[0.000218] (node_testing_py) JobQueued: {'identifier': 'node_testing_py', 'dependencies': OrderedDict()}
-[0.000255] (node_testing_py) JobStarted: {'identifier': 'node_testing_py'}
-[0.098707] (-) TimerEvent: {}
-[0.147177] (node_testing_py) JobEnded: {'identifier': 'node_testing_py', 'rc': 0}
-[0.158736] (-) EventReactorShutdown: {}
