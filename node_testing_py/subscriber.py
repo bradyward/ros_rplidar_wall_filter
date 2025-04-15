@@ -55,46 +55,62 @@ class MinimalSubscriber(Node):
 
     ### For experimenting with point cloud
     def point_cloud_callback(self, message):
-        # Get message data into a 2D numpy array, each row representing a point
-        original_array = np.array(message.data)
-        np_data = original_array.reshape(-1,32)
+        datatype_sizes = {
+            1: 1,  # INT8
+            2: 1,  # UINT8
+            3: 2,  # INT16
+            4: 2,  # UINT16
+            5: 4,  # INT32
+            6: 4,  # UINT32
+            7: 4,  # FLOAT32
+            8: 8   # FLOAT64
+        }
 
-        # Remove half the points
-        #new_data = np.array(np_data[::2].flatten()) #takes out half of the points
+        # Get transform message
+        try:
+            r_pose = self.tf_buffer.lookup_transform("target_frame", "source_frame", rclpy.time.Time()).transform
+            #self.get_logger().info(f'Transform quat: {self.quat}')
+        except Exception as ex:
+            self.get_logger().info(f'Could not transform : {ex}')
+            return
 
-        """
-        Convert the points to floats to make working with them possible
-        Each x, and y must be converted from int int int int -> float
-        First check if they are represented in little/big endian form
-        Perform the conversion, likely using the struct package: https://stackoverflow.com/questions/57119566/converting-4-uint-8-values-to-float-in-python
-        Ignore all other fields: y, intensity, ring, and time
-        Perform bounds check on the x/y points in 2D. Write them back in their original form alongside the other fields
-        Repeat for all other points
-
-        Consider performance with this, whether its faster to:
-            Convert all points, check all points, use mask to rewrite all valid points
-            Check bounds and write as points are converted
-        Second method should be significantly faster and easier as all original data is available and doesn't need to be converted back
-        """
-        if (message.isbigendian):
-            1
-        else:
-            2
-
-        # Update the message to match the new point array
-        message.width = int(len(new_data) / 32)
-        message.row_step = int(len(new_data))
-        message.data = new_data
-
-        # Publish
+		# Get bounding box relative to lidar device
+		box = [ [self.min_x, self.min_y], [self.max_x, self.max_y] ]
+    	box = transform_bounding_box(self, box, self.quat_to_theta(r_pose.rotation), r_pose.translation):
+        
+        # Get size of x and y
+        x_size = datatype_sizes[message.fields[0].datatype]
+        y_size = datatype_sizes[message.fields[1].datatype]
+        x = message.fields[0]
+        y = message.fields[1]
+        
+        #valid_points = np.array([]).astype(np.uint8)
+        valid_points = []
+        
+        
+        for i in range(0, message.row_step*message.height, message.point_step):
+        	# Create formatter for unpacking ints to float
+        	formatter = '>f' if message.is_bigendian else '<f'
+        
+        	# Get the actual x and y coordinate
+        	x_point = struct.unpack(formatter, bytes(message.data[i+x.offset : i+x.offset + x_size]))[0]
+        	y_point = struct.unpack(formatter, bytes(message.data[i+y.offset : i+y.offset + y_size]))[0]
+        	#print(x_point)
+        	#print(y_point)
+        
+        	# Check if the point is within bounds
+        	if box[0][0] <= x_point <= box[1][0] and box[0][1] <= y_point <= box[1][1]:
+        		# Store all data associated with this point
+        		valid_points.extend(message.data[i:i+message.point_step])
+        
+        # Merge new point array into original message and publish
+        # Adjust total size of message width
+        print(np.array(valid_points, dtype=np.uint8))
+        print(len(valid_points))
+        message.row_step = len(valid_points)) # Might need to force as uint32
+        message.width = message.row_step / message.point_step # Might need to force as uint32
         self.pointCloudPublisher.publish(message)
     ###
-
-    def print_no_data(self, m):
-        tm = copy.deepcopy(m)
-        tm.data = []
-        self.get_logger().info("New message: {0}\n{1}\n\n".format(tm, len(m.data)))
-
 
     """
     Triggers when a LaserScan is recieved on /scan
@@ -116,28 +132,17 @@ class MinimalSubscriber(Node):
         points = np.array(points, dtype=np.float32)
         points_clean = np.nan_to_num(points, nan=self.default_bad, posinf=self.default_bad, neginf=self.default_bad)
 
-        # Apply rotation
+        ### TODO remove these two transformations and adjust bounding box instead
+        # Apply rotation then shift points according to robot's pose
         transformed = self.apply_rotation(points_clean, self.quat_to_theta(r_pose.rotation))
-
-        # Shift points according to robot's pose
         transformed = transformed + [r_pose.translation.x, r_pose.translation.y]
 
         # Cull any points out of bounds
-        # TODO change self.min_x+r_pose.translation.x to adjust self.min_x at the start of getting the bound box so we don't have to add every time
         mask = ((self.min_x+r_pose.translation.x) < transformed[:,0]) & (transformed[:,0] < (self.max_x+r_pose.translation.x)) & ((self.min_y+r_pose.translation.y) < transformed[:,1]) & (transformed[:,1] < (self.max_y+r_pose.translation.y))
         culled_points = np.where(mask[:, np.newaxis], transformed, np.array([0,0]))
 
-        # Construct the stamped polygon
-        points_3d = np.hstack([culled_points, np.zeros((transformed.shape[0], 1), dtype=np.float32)]) # Tack 0 for z coord
-        geo_message = PolygonStamped()
-        geo_message.header.frame_id = "laser"
-        geo_message.polygon.points = [Point32(x=float(p[0]), y=float(p[1]), z=float(p[2])) for p in points_3d]
-
         # Modify the original laser scan according to the map
-        original_ranges = message.ranges
-        culled_ranges = np.where(mask, original_ranges, self.default_bad).astype(np.float32)
-
-        message.ranges = culled_ranges
+        message.ranges = np.where(mask, message.ranges, self.default_bad).astype(np.float32)
 
         # Publish
         self.publisherTransformed.publish(geo_message)
@@ -171,6 +176,33 @@ class MinimalSubscriber(Node):
         after_rotation = np.matmul(points,tf_matrix)
         return after_rotation
 
+    """
+    Transform the box to the lidar's coordinate frame
+    param box should be a 2d array
+    """
+    def transform_bounding_box(self, box, theta, current_pose):
+    	# Corners of the global bounding box
+		corners = np.array(
+			[self.x_min, self.y_min],
+        	[self.x_min, self.y_max],
+        	[self.x_max, self.y_min],
+        	[self.x_max, self.y_max]
+		)
+
+    	# Step 1: Translate by -current_pose
+    	translated_points = corners - np.array([current_pose.x, current_pose.y])
+
+    	# Step 2: Inverse rotate by -theta
+    	transformation_matrix = np.array([
+    	    [np.cos(-theta), -np.sin(-theta)],
+    	    [np.sin(-theta), np.cos(-theta)]
+    	])
+    	transformed = np.dot(translated_points, transformation_matrix.T)
+
+		# Return result as [ [min_x, min_y], [max_x, max_y] ]
+		new_min = np.min(transformed, axis=0).tolist()
+    	new_max = np.max(transformed, axis=0).tolist()
+    	return [ [new_min[0], new_min[1]], [new_max[0], new_max[1] ]
 
 def main(args=None):
     rclpy.init(args=args)
