@@ -7,6 +7,7 @@ from std_msgs.msg import String
 import numpy as np
 import math
 import copy
+import struct
 
 import tf2_ros as tf2
 #from tf2_ros import TransformException
@@ -47,9 +48,9 @@ class MinimalSubscriber(Node):
         #self.quat = [0.9659258, 0, 0.258819, 0] # 30 degree rotation
 
         self.default_bad = 0.0
-        self.min_x = -1# + self.r_pose[0]
-        self.min_y = -1# + self.r_pose[1]
-        self.max_x = 1 #+ self.r_pose[0]
+        self.min_x = -2# + self.r_pose[0]
+        self.min_y = -2# + self.r_pose[1]
+        self.max_x = 4 #+ self.r_pose[0]
         self.max_y = 1 #+ self.r_pose[1]
 
 
@@ -75,8 +76,8 @@ class MinimalSubscriber(Node):
             return
 
 		# Get bounding box relative to lidar device
-		box = [ [self.min_x, self.min_y], [self.max_x, self.max_y] ]
-    	box = transform_bounding_box(self, box, self.quat_to_theta(r_pose.rotation), r_pose.translation):
+        box = [ [self.min_x, self.min_y], [self.max_x, self.max_y] ]
+        box = self.transform_bounding_box(box, self.quat_to_theta(r_pose.rotation), r_pose.translation)
         
         # Get size of x and y
         x_size = datatype_sizes[message.fields[0].datatype]
@@ -86,7 +87,6 @@ class MinimalSubscriber(Node):
         
         #valid_points = np.array([]).astype(np.uint8)
         valid_points = []
-        
         
         for i in range(0, message.row_step*message.height, message.point_step):
         	# Create formatter for unpacking ints to float
@@ -107,8 +107,9 @@ class MinimalSubscriber(Node):
         # Adjust total size of message width
         print(np.array(valid_points, dtype=np.uint8))
         print(len(valid_points))
-        message.row_step = len(valid_points)) # Might need to force as uint32
-        message.width = message.row_step / message.point_step # Might need to force as uint32
+        message.data = valid_points
+        message.row_step = int(len(valid_points)) # Might need to force as uint32
+        message.width = int(message.row_step / message.point_step) # Might need to force as uint32
         self.pointCloudPublisher.publish(message)
     ###
 
@@ -182,27 +183,28 @@ class MinimalSubscriber(Node):
     """
     def transform_bounding_box(self, box, theta, current_pose):
     	# Corners of the global bounding box
-		corners = np.array(
-			[self.x_min, self.y_min],
-        	[self.x_min, self.y_max],
-        	[self.x_max, self.y_min],
-        	[self.x_max, self.y_max]
+        corners = np.array( [
+			[self.min_x, self.min_y],
+        	[self.min_x, self.max_y],
+        	[self.max_x, self.min_y],
+        	[self.max_x, self.max_y]
+            ]
 		)
 
     	# Step 1: Translate by -current_pose
-    	translated_points = corners - np.array([current_pose.x, current_pose.y])
+        translated_points = corners - np.array([current_pose.x, current_pose.y])
 
     	# Step 2: Inverse rotate by -theta
-    	transformation_matrix = np.array([
-    	    [np.cos(-theta), -np.sin(-theta)],
-    	    [np.sin(-theta), np.cos(-theta)]
-    	])
-    	transformed = np.dot(translated_points, transformation_matrix.T)
+        transformation_matrix = np.array([
+            [np.cos(-theta), -np.sin(-theta)],
+            [np.sin(-theta), np.cos(-theta)]
+            ])
+        transformed = np.dot(translated_points, transformation_matrix.T)
 
 		# Return result as [ [min_x, min_y], [max_x, max_y] ]
-		new_min = np.min(transformed, axis=0).tolist()
-    	new_max = np.max(transformed, axis=0).tolist()
-    	return [ [new_min[0], new_min[1]], [new_max[0], new_max[1] ]
+        new_min = np.min(transformed, axis=0).tolist()
+        new_max = np.max(transformed, axis=0).tolist()
+        return [ [new_min[0], new_min[1]], [new_max[0], new_max[1]] ]
 
 def main(args=None):
     rclpy.init(args=args)
