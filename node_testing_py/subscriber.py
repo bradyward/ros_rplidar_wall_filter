@@ -15,9 +15,7 @@ import tf2_ros as tf2
 #from tf2_ros.transform_listener import TransformListener
 
 from example_interfaces.msg import String
-from geometry_msgs.msg import PolygonStamped, Point32, Quaternion
-
-
+from geometry_msgs.msg import PolygonStamped, Point32, Quaternion, Rectangle
 
 class MinimalSubscriber(Node):
     def __init__(self):
@@ -25,11 +23,16 @@ class MinimalSubscriber(Node):
         # Setup 2D lidar listener / publisher
         self.publisherTransformed = self.create_publisher(PolygonStamped, '/postRotation', 10)
         self.publisherTrimmed = self.create_publisher(LaserScan, '/postRotationLaser', 10)
-        self.subscription = self.create_subscription(LaserScan, '/scan', self.listener_callback, 10)
+        self.subscription = self.create_subscription(LaserScan, '/scan', self.laserScan_callback, 10)
         self.subscription
 
         # Get bounding box
-        #boxSubscriber = self.create_subscription(Point, '/arena', self.listener_callback, 10)
+        # Import from kurome/msg in main repo
+        #self.arenaSubscriber = self.create_subscription(Rectangle, '/kurome/arena', self.listener_callback, 10)
+        self.min_x = -1# + self.r_pose[0]
+        self.min_y = -1# + self.r_pose[1]
+        self.max_x = 3 #+ self.r_pose[0]
+        self.max_y = 0 #+ self.r_pose[1]
 
         # Setup 3D lidar listener / publisher
         self.pointCloudSubscriber = self.create_subscription(PointCloud2, '/unilidar/cloud', self.point_cloud_callback, 10)
@@ -48,13 +51,7 @@ class MinimalSubscriber(Node):
         #self.quat = [0.9659258, 0, 0.258819, 0] # 30 degree rotation
 
         self.default_bad = 0.0
-        self.min_x = -2# + self.r_pose[0]
-        self.min_y = -2# + self.r_pose[1]
-        self.max_x = 4 #+ self.r_pose[0]
-        self.max_y = 1 #+ self.r_pose[1]
 
-
-    ### For experimenting with point cloud
     def point_cloud_callback(self, message):
         datatype_sizes = {
             1: 1,  # INT8
@@ -95,8 +92,6 @@ class MinimalSubscriber(Node):
         	# Get the actual x and y coordinate
         	x_point = struct.unpack(formatter, bytes(message.data[i+x.offset : i+x.offset + x_size]))[0]
         	y_point = struct.unpack(formatter, bytes(message.data[i+y.offset : i+y.offset + y_size]))[0]
-        	#print(x_point)
-        	#print(y_point)
         
         	# Check if the point is within bounds
         	if box[0][0] <= x_point <= box[1][0] and box[0][1] <= y_point <= box[1][1]:
@@ -105,19 +100,16 @@ class MinimalSubscriber(Node):
         
         # Merge new point array into original message and publish
         # Adjust total size of message width
-        print(np.array(valid_points, dtype=np.uint8))
-        print(len(valid_points))
         message.data = valid_points
         message.row_step = int(len(valid_points)) # Might need to force as uint32
         message.width = int(message.row_step / message.point_step) # Might need to force as uint32
         self.pointCloudPublisher.publish(message)
-    ###
 
     """
     Triggers when a LaserScan is recieved on /scan
     Trims all ranges outside a bounding box
     """
-    def listener_callback(self, message):
+    def laserScan_callback(self, message):
         #self.get_logger().info("Entire message: {0}\n".format(message))
 
         # Get transform message
@@ -137,9 +129,12 @@ class MinimalSubscriber(Node):
         # Apply rotation then shift points according to robot's pose
         transformed = self.apply_rotation(points_clean, self.quat_to_theta(r_pose.rotation))
         transformed = transformed + [r_pose.translation.x, r_pose.translation.y]
+        #box = [ [self.min_x, self.min_y], [self.max_x, self.max_y] ]
+        #transformed_box = self.transform_bounding_box(box, self.quat_to_theta(r_pose.rotation), r_pose.translation)
 
         # Cull any points out of bounds
         mask = ((self.min_x+r_pose.translation.x) < transformed[:,0]) & (transformed[:,0] < (self.max_x+r_pose.translation.x)) & ((self.min_y+r_pose.translation.y) < transformed[:,1]) & (transformed[:,1] < (self.max_y+r_pose.translation.y))
+        #mask = ( (transformed_box[0][0] < points_clean[:,0]) & (points_clean[:,0] < transformed_box[1][0]) ) & ( (transformed_box[0][1] < points_clean[:,1]) & (points_clean[:,1] < transformed_box[1][1]) )
         culled_points = np.where(mask[:, np.newaxis], transformed, np.array([0,0]))
 
         # Modify the original laser scan according to the map
@@ -192,7 +187,7 @@ class MinimalSubscriber(Node):
 		)
 
     	# Step 1: Translate by -current_pose
-        translated_points = corners - np.array([current_pose.x, current_pose.y])
+        translated_points = corners - np.array([current_pose.x + of, current_pose.y + of])
 
     	# Step 2: Inverse rotate by -theta
         transformation_matrix = np.array([
