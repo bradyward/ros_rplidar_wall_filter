@@ -14,10 +14,9 @@ import tf2_ros as tf2
 #from tf2_ros.buffer import Buffer
 #from tf2_ros.transform_listener import TransformListener
 
-from example_interfaces.msg import String
-from geometry_msgs.msg import PolygonStamped, Point32, Quaternion, Rectangle
+from geometry_msgs.msg import PolygonStamped, Point32, Quaternion#, Rectangle
 
-class MinimalSubscriber(Node):
+class WallFilterNode(Node):
     def __init__(self):
         super().__init__('minimal_subscriber')
         # Setup 2D lidar listener / publisher
@@ -203,12 +202,9 @@ class MinimalSubscriber(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    minimal_subscriber = MinimalSubscriber()
-    rclpy.spin(minimal_subscriber)
-    # Destroy the node explicitly
-    # (optional - otherwise it will be done automatically
-    # when the garbage collector destroys the node object)
-    minimal_subscriber.destroy_node()
+    wall_filter = WallFilterNode()
+    rclpy.spin(wall_filter)
+    wall_filter.destroy_node()
     rclpy.shutdown()
 
 if __name__ == '__main__':
