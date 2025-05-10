@@ -47,10 +47,10 @@ public:
 
 private:
     void arena_callback(const kurome::msg::Rectangle::SharedPtr msg) {
-        min_x_ = msg->arena.origin.x;
-        min_y_ = msg->arena.origin.y;
-        max_x_ = min_x_ + msg->arena.width;
-        max_y_ = min_y_ + msg->arena.height;
+        min_x_ = msg->origin.x;
+        min_y_ = msg->origin.y;
+        max_x_ = min_x_ + msg->width;
+        max_y_ = min_y_ + msg->height;
     }
 
     void pointcloud_callback(const sensor_msgs::msg::PointCloud2::SharedPtr msg) {
@@ -94,8 +94,9 @@ private:
             return;
         }
 
-        float theta = std::asin(std::clamp(2.0f * (transform.transform.rotation.w * transform.transform.rotation.y -
-                                                  transform.transform.rotation.z * transform.transform.rotation.x), -1.0f, 1.0f));
+        float raw = 2.0f * (transform.transform.rotation.w * transform.transform.rotation.y -
+                                                  transform.transform.rotation.z * transform.transform.rotation.x);
+	float theta = std::asin(std::clamp(raw, -1.0f, 1.0f));
 
         size_t n = msg->ranges.size();
         std::vector<float> filtered_ranges = msg->ranges;

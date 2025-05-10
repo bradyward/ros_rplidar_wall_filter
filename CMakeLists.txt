@@ -8,6 +8,7 @@ find_package(geometry_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2_sensor_msgs REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
 find_package(kurome REQUIRED)
 
 add_executable(wall_filter_node src/wall_filter_node.cpp)
@@ -18,6 +19,7 @@ ament_target_dependencies(wall_filter_node
   tf2
   tf2_ros
   tf2_sensor_msgs
+  tf2_geometry_msgs
   kurome
 )
 
