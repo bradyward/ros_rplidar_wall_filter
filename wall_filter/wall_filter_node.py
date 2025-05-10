@@ -1,3 +1,6 @@
+# Convert this code to cpp. Use eigen for matrix stuff. Use tf2_sensor_msgs to transform the point cloud so we can perform a 2d bound check on it
+
+
 import rclpy
 from rclpy.node import Node
 
@@ -15,41 +18,45 @@ import tf2_ros as tf2
 #from tf2_ros.transform_listener import TransformListener
 
 from geometry_msgs.msg import PolygonStamped, Point32, Quaternion#, Rectangle
+from kurome.msg import Rectangle
 
 class WallFilterNode(Node):
     def __init__(self):
         super().__init__('minimal_subscriber')
+        # Set default values
+        self.default_bad_range = 0.0
+        self.default_arena_size = 100000
+        self.min_x = -1 * self.default_arena_size
+        self.min_y = -1 * self.default_arena_size
+        self.max_x = self.default_arena_size
+        self.max_y = self.default_arena_size
+
         # Setup 2D lidar listener / publisher
-        self.publisherTransformed = self.create_publisher(PolygonStamped, '/postRotation', 10)
-        self.publisherTrimmed = self.create_publisher(LaserScan, '/postRotationLaser', 10)
-        self.subscription = self.create_subscription(LaserScan, '/scan', self.laserScan_callback, 10)
-        self.subscription
+        self.scanSubscription = self.create_subscription(LaserScan, '/scan', self.laserScan_callback, 10)
+        self.kuromeScanSubscription = self.create_subscription(LaserScan, '/kurome/scan', self.laserScan_callback, 10)
+        self.scanPublisher = self.create_publisher(LaserScan, '/filteredLasers999', 10) # Set this to whatever channel you want
 
         # Get bounding box
         # Import from kurome/msg in main repo
-        #self.arenaSubscriber = self.create_subscription(Rectangle, '/kurome/arena', self.listener_callback, 10)
-        self.min_x = -1# + self.r_pose[0]
-        self.min_y = -1# + self.r_pose[1]
-        self.max_x = 3 #+ self.r_pose[0]
-        self.max_y = 0 #+ self.r_pose[1]
+        self.arenaSubscriber = self.create_subscription(Rectangle, '/kurome/arena', self.arena_callback, 10)
 
         # Setup 3D lidar listener / publisher
-        self.pointCloudSubscriber = self.create_subscription(PointCloud2, '/unilidar/cloud', self.point_cloud_callback, 10)
-        self.pointCloudPublisher = self.create_publisher(PointCloud2, '/testPointCloud', 100)
+        self.pointCloudSubscriber = self.create_subscription(PointCloud2, '/unilidar/cloud', self.point_cloud_callback, 10) # Unsure what topic this is supposed to listen to
+        self.pointCloudPublisher = self.create_publisher(PointCloud2, '/testPointCloud999', 100)
         
         # Setup transform listener
         self.tf_buffer = tf2.Buffer()
         self.tf_listener = tf2.TransformListener(self.tf_buffer, self)
 
-        ### Parameters ###
-        #self.target_frame = self.declare_parameter('target_frame', 'default_value').get_parameter_value().string_value
+    """
+    Get the bounding box for the arena
+    """
+    def arena_callback(self, message):
+        self.min_x = message.arena.origin.x
+        self.min_y = message.arena.origin.y
+        self.max_x = self.min_x + message.arena.width
+        self.max_y = self.min_y + message.arena.height
 
-        # Should get these from tf listener during callback. Parameters just for testing
-        #self.r_pose = [-.5,-.5] 
-        #self.quat = [0,0,0,0] # 0 degree rotation
-        #self.quat = [0.9659258, 0, 0.258819, 0] # 30 degree rotation
-
-        self.default_bad = 0.0
 
     def point_cloud_callback(self, message):
         datatype_sizes = {
@@ -122,7 +129,7 @@ class WallFilterNode(Node):
         # Ensure all points are float32 (required by Polygon) and clean out NaN/infinity values
         points = self.polar_to_cartesian(message.angle_min, message.ranges, message.angle_increment)
         points = np.array(points, dtype=np.float32)
-        points_clean = np.nan_to_num(points, nan=self.default_bad, posinf=self.default_bad, neginf=self.default_bad)
+        points_clean = np.nan_to_num(points, nan=self.default_bad_range, posinf=self.default_bad_range, neginf=self.default_bad_range)
 
         ### TODO remove these two transformations and adjust bounding box instead
         # Apply rotation then shift points according to robot's pose
@@ -137,7 +144,7 @@ class WallFilterNode(Node):
         culled_points = np.where(mask[:, np.newaxis], transformed, np.array([0,0]))
 
         # Modify the original laser scan according to the map
-        message.ranges = np.where(mask, message.ranges, self.default_bad).astype(np.float32)
+        message.ranges = np.where(mask, message.ranges, self.default_bad_range).astype(np.float32)
 
         # Publish
         self.publisherTransformed.publish(geo_message)
