@@ -1,20 +1,23 @@
 <?xml version="1.0"?>
-<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>wall_filter</name>
-  <version>0.0.0</version>
-  <description>Basic bounding box point filter for rplidar and unitree lidar devices</description>
-  <maintainer email="bradyward@u.boisestate.edu">brady</maintainer>
-  <license>TODO: License declaration</license>
+  <name>ros_rplidar_wall_filter</name>
+  <version>0.1.0</version>
+  <description>Filters LiDAR points outside a 2D global bounding box using transforms.</description>
+  <maintainer email="your_email@example.com">Your Name</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>sensor_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>tf2</depend>
+  <depend>tf2_ros</depend>
+  <depend>tf2_sensor_msgs</depend>
+  <depend>kurome</depend> <!-- Assuming this is in your workspace -->
 
   <export>
-    <build_type>ament_python</build_type>
-    <exec_depend>rclpy</exec_depend>
-    <exec_depend>numpy</exec_depend>
-    <exec_depend>tf2_ros</exec_depend>
-    <exec_depend>std_msgs</exec_depend>
-    <exec_depend>sensor_msgs</exec_depend>
-    <exec_depend>geometry_msgs</exec_depend>
-    <exec_depend>kurome</exec_depend>
+    <build_type>ament_cmake</build_type>
   </export>
 </package>
+
