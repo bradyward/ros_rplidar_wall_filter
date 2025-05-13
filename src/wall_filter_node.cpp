@@ -22,8 +22,8 @@ public:
         this->declare_parameter<std::string>("target_frame", "map");
         this->declare_parameter<std::string>("source_frame", "base_link");
 
-        get_parameter("target_frame", target_frame_);
-        get_parameter("source_frame", source_frame_);
+        get_parameter("base_link", target_frame_);
+        get_parameter("map", source_frame_);
 
         default_bad_range_ = 0.0f;
         float default_arena_size = 100000.0f;
@@ -56,7 +56,7 @@ private:
     void pointcloud_callback(const sensor_msgs::msg::PointCloud2::SharedPtr msg) {
         geometry_msgs::msg::TransformStamped transform;
         try {
-            transform = tf_buffer_->lookupTransform(target_frame_, msg->header.frame_id, tf2::TimePointZero);
+            transform = tf_buffer_->lookupTransform(target_frame_, source_frame_, tf2::TimePointZero);
         } catch (const tf2::TransformException &ex) {
             RCLCPP_WARN(this->get_logger(), "TF lookup failed: %s", ex.what());
             return;
